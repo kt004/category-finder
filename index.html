@@ -205,9 +205,16 @@ footer p { margin: .2rem 0; }
   @keyframes drop { from { transform: translateY(-4px); } to { transform: none; } }
 }
 </style>
-<!-- 閲覧数の計測（GoatCounter）。検索語が送られないよう、URL の ?q=… は外してページの場所だけ送る -->
-<script>window.goatcounter = { path: () => location.pathname };</script>
-<script data-goatcounter="https://category-finder.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- 閲覧数の計測（GoatCounter）。検索語が送られないよう、URL の ?q=… は送らない（path は場所だけにし、count.js が別に付ける q も取り除く） -->
+<script>
+window.goatcounter = { no_onload: true, path: () => location.pathname };
+function gcCount() {
+  const gc = window.goatcounter, get = gc.get_data;
+  gc.get_data = v => { const d = get(v); delete d.q; return d; };
+  gc.count();
+}
+</script>
+<script data-goatcounter="https://category-finder.goatcounter.com/count" async src="https://gc.zgo.at/count.js" onload="gcCount()"></script>
 </head>
 <body>
 <div class="wrap">

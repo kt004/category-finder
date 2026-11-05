@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amazonカテゴリ逆引き</title>
+<script>
+// 保存した表示設定を、描画前に反映する（ちらつき防止）
+try {
+  const t = localStorage.getItem("acat-theme"), c = localStorage.getItem("acat-color"), z = localStorage.getItem("acat-size");
+  if (z === "s" || z === "l") document.documentElement.dataset.size = z; // 既定は中
+  if (t === "dark") document.documentElement.dataset.theme = t; // 既定はライト
+  if (c && c !== "green") document.documentElement.dataset.color = c;
+} catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+Antique:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* 売り場の通路案内板: 答えは吊り下げ看板のように大きく、階層は棚の段として並べる */
+/* 色の種類（data-color）: 案内板の色と背景のわずかな色味を、ライト用(-l)とダーク用(-d)の組で持つ */
+:root {
+  --sign-l: #0e5f52; --text-l: #0e5f52; --paper-l: #eef1ec;   /* 深緑（既定） */
+  --sign-d: #1f8a77; --text-d: #6fd6bf; --paper-d: #101719; --surface-d: #182225; --line-d: #2c3a3d;
+}
+:root[data-color="indigo"] {                                    /* 藍 */
+  --sign-l: #27479a; --text-l: #27479a; --paper-l: #eef0f5;
+  --sign-d: #3d67c9; --text-d: #a3bcff; --paper-d: #0f141c; --surface-d: #171e2a; --line-d: #2b3446;
+}
+:root[data-color="enji"] {                                      /* えんじ */
+  --sign-l: #9b2335; --text-l: #9b2335; --paper-l: #f4efee;
+  --sign-d: #b8394d; --text-d: #ffa3b0; --paper-d: #191213; --surface-d: #231a1c; --line-d: #3d2b2e;
+}
+:root[data-color="sumi"] {                                      /* 墨 */
+  --sign-l: #2f363b; --text-l: #2f363b; --paper-l: #f1f1ef;
+  --sign-d: #56626a; --text-d: #cfd8dd; --paper-d: #131516; --surface-d: #1c1f21; --line-d: #33383b;
+}
+
+/* ライト（既定） */
+:root {
+  --paper: var(--paper-l); /* 背景 */
+  --surface: #ffffff;      /* カード面 */
+  --ink: #17262d;          /* 本文 */
+  --muted: #56666d;        /* 補足 */
+  --line: #cdd5cf;         /* 罫線 */
+  --sign: var(--sign-l);   /* 案内板の色（アクセント） */
+  --sign-ink: #ffffff;     /* 案内板の上の文字 */
+  --sign-text: var(--text-l); /* 地の上に置くアクセント色の文字 */
+  --tag: #f3c42f;          /* 棚札の黄色 */
+  --tag-ink: #2a2200;
+  --font-display: "Zen Kaku Gothic Antique", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  --font-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --paper: var(--paper-d); --surface: var(--surface-d); --ink: #e4ebe7; --muted: #9aaba5;
+  --line: var(--line-d); --sign: var(--sign-d); --sign-text: var(--text-d); --sign-ink: #f4fffb; --tag: #e6b821; --tag-ink: #231c00;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+/* 文字サイズ（data-size）: 寸法は rem 指定なので、基準を変えると項目ごと拡大・縮小される */
+:root[data-size="s"] { font-size: 87.5%; }
+:root[data-size="l"] { font-size: 118.75%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 1rem; line-height: 1.7;
+}
+a { color: var(--sign-text); }
+:focus-visible { outline: 3px solid var(--tag); outline-offset: 2px; border-radius: 4px; }
+
+.wrap { max-width: 1500px; margin: 0 auto; padding: 0 max(16px, 4vw); }
+
+/* 表示の設定（表示モード・色） */
+.prefs { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem 1rem; padding-top: 1rem; font-size: .85rem; position: relative; }
+.pref { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.prefs input { position: absolute; opacity: 0; width: 1px; height: 1px; clip-path: inset(50%); }
+.theme-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; padding: 0; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--ink);
+}
+.size-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
+.size-seg label { display: inline-flex; align-items: center; justify-content: center; width: 2.1rem; height: 2rem; cursor: pointer; color: var(--muted); font-weight: 700; line-height: 1; }
+.size-seg label:hover { color: var(--ink); }
+.size-seg input:checked + label { background: var(--sign); color: var(--sign-ink); }
+label[for="size-s"] { font-size: .75rem; }
+label[for="size-m"] { font-size: .95rem; }
+label[for="size-l"] { font-size: 1.2rem; }
+.theme-btn:hover { border-color: var(--muted); }
+.theme-btn svg { width: 1.05rem; height: 1.05rem; }
+.theme-btn .i-sun { display: none; }
+:root[data-theme="dark"] .theme-btn .i-sun { display: block; }
+:root[data-theme="dark"] .theme-btn .i-moon { display: none; }
+.swatches { display: flex; flex-wrap: wrap; gap: .35rem; }
+.swatches label {
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer; width: 2rem; height: 2rem;
+  border: 1px solid var(--line); border-radius: 50%; background: var(--surface);
+}
+.swatches label:hover { border-color: var(--muted); }
+.swatches input:checked + label { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.sw { width: 1.2rem; height: 1.2rem; border-radius: 50%; flex: none; }
+label[for="color-green"] .sw { background: #0e5f52; }
+label[for="color-indigo"] .sw { background: #27479a; }
+label[for="color-enji"] .sw { background: #9b2335; }
+label[for="color-sumi"] .sw { background: #2f363b; box-shadow: 0 0 0 1px var(--line); }
+.prefs input:focus-visible + label { outline: 3px solid var(--tag); outline-offset: 1px; }
+
+header { padding: 1rem 0 1.2rem; }
+.brand { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; }
+h1 {
+  font-family: var(--font-display); font-weight: 900; font-size: 2rem; line-height: 1.2;
+  margin: 0; letter-spacing: .02em; text-wrap: balance;
+}
+.unofficial { font-size: .8rem; color: var(--muted); border: 1px solid var(--line); padding: .05rem .5rem; border-radius: 999px; }
+.lead { margin: .5rem 0 0; color: var(--muted); }
+.caveat { margin: .4rem 0 0; color: var(--muted); font-size: .85rem; }
+
+/* 検索欄 */
+.search { display: grid; gap: .6rem; padding: 1rem 0 .4rem; }
+.search label { font-weight: 700; font-size: .95rem; }
+.field { display: flex; gap: .5rem; }
+#q {
+  flex: 1; min-width: 0; font: inherit; font-size: 1.25rem; padding: .7rem .9rem;
+  border: 2px solid var(--ink); border-radius: 8px; background: var(--surface); color: var(--ink);
+}
+#q::placeholder { color: var(--muted); }
+#clear {
+  font: inherit; font-weight: 700; padding: 0 1rem; border-radius: 8px; cursor: pointer;
+  border: 2px solid var(--line); background: var(--surface); color: var(--ink);
+}
+#clear:hover { border-color: var(--ink); }
+.chip {
+  font: inherit; font-size: .9rem; padding: .2rem .7rem; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.chip:hover { border-color: var(--sign-text); color: var(--sign-text); }
+
+/* 結果 */
+#results { display: grid; gap: 1rem; padding: 1rem 0 2rem; }
+.status { margin: 0; color: var(--muted); font-size: .95rem; }
+.status strong { color: var(--ink); }
+
+.sign-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.sign-card.main { border: 2px solid var(--sign); box-shadow: 0 6px 18px rgb(0 0 0 / .08); }
+.sign-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem 1rem; padding: .9rem 1.2rem .2rem; }
+.item-name { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; margin: 0; }
+.matched { font-size: .85rem; color: var(--muted); }
+
+.places { display: grid; gap: .7rem; padding: .7rem 1.2rem 1.2rem; }
+.place { display: grid; grid-template-columns: 6.6rem 1fr; gap: .2rem 1rem; align-items: start; }
+.rank {
+  font-size: .78rem; font-weight: 700; padding: .15rem .55rem; border-radius: 4px; white-space: nowrap;
+  border: 1px solid var(--line); color: var(--muted); margin-top: .55rem; justify-self: start;
+}
+.place.first .rank { background: var(--tag); color: var(--tag-ink); border-color: var(--tag); }
+.path { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .8rem; }
+.dept {
+  display: inline-block; font-family: var(--font-display); font-weight: 900;
+  background: var(--sign); color: var(--sign-ink); padding: .25rem .8rem; border-radius: 4px;
+  font-size: 1.15rem; letter-spacing: .04em;
+}
+.place.first .dept { font-size: 1.5rem; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem .4rem; font-size: 1rem; }
+.crumbs::before { content: "›"; color: var(--muted); }
+.crumbs .sep { color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: .35rem; text-decoration: none; font-weight: 700; font-size: .9rem;
+  padding: .35rem .8rem; border-radius: 6px; border: 2px solid var(--sign-text); color: var(--sign-text); background: transparent;
+}
+.btn:hover { background: var(--sign); border-color: var(--sign); color: var(--sign-ink); }
+
+.others { display: grid; gap: .6rem; }
+.others h2, section h2 { font-family: var(--font-display); font-size: 1.1rem; margin: .4rem 0 0; }
+
+.empty { background: var(--surface); border: 1px dashed var(--muted); border-radius: 10px; padding: 1.1rem 1.2rem; display: grid; gap: .6rem; }
+.empty p { margin: 0; }
+
+/* 確かめ方 */
+.howto { background: var(--surface); border-left: 6px solid var(--tag); border-radius: 0 10px 10px 0; padding: 1rem 1.2rem; }
+.howto h2 { margin-top: 0; }
+.howto ol { margin: .3rem 0 0; padding-left: 1.4rem; display: grid; gap: .2rem; }
+
+/* 一覧 */
+.dept-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .8rem; margin-top: .8rem; }
+.dept-box { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; display: grid; gap: .45rem; align-content: start; }
+.dept-box h3 { margin: 0; font-family: var(--font-display); font-size: 1.05rem; display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; }
+.dept-box h3 a { font-family: var(--font-body); font-size: .8rem; font-weight: 400; white-space: nowrap; }
+.dept-box .chips { display: flex; flex-wrap: wrap; gap: .3rem; }
+.dept-box .chip { font-size: .82rem; padding: .1rem .55rem; }
+
+section { padding: 1rem 0; }
+footer { border-top: 1px solid var(--line); margin-top: 1.5rem; padding: 1.2rem 0 2.5rem; color: var(--muted); font-size: .85rem; }
+footer p { margin: .2rem 0; }
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.6rem; }
+  .place { grid-template-columns: 1fr; }
+  .rank { justify-self: start; margin-top: 0; }
+  #q { font-size: 1.1rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sign-card { animation: drop .25s ease-out both; }
+  @keyframes drop { from { transform: translateY(-4px); } to { transform: none; } }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="prefs">
+    <div class="pref">
+      <button type="button" class="theme-btn" id="theme-btn">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+    <div class="pref" role="radiogroup" aria-label="文字サイズ">
+      <div class="size-seg">
+        <input type="radio" name="size" id="size-s" value="s"><label for="size-s" title="小" aria-label="小">A</label>
+        <input type="radio" name="size" id="size-m" value="m"><label for="size-m" title="中" aria-label="中">A</label>
+        <input type="radio" name="size" id="size-l" value="l"><label for="size-l" title="大" aria-label="大">A</label>
+      </div>
+    </div>
+    <div class="pref" role="radiogroup" aria-label="色">
+      <div class="swatches">
+        <input type="radio" name="color" id="color-green" value="green"><label for="color-green" title="深緑" aria-label="深緑"><span class="sw" aria-hidden="true"></span></label>
+        <input type="radio" name="color" id="color-indigo" value="indigo"><label for="color-indigo" title="藍" aria-label="藍"><span class="sw" aria-hidden="true"></span></label>
+        <input type="radio" name="color" id="color-enji" value="enji"><label for="color-enji" title="えんじ" aria-label="えんじ"><span class="sw" aria-hidden="true"></span></label>
+        <input type="radio" name="color" id="color-sumi" value="sumi"><label for="color-sumi" title="墨" aria-label="墨"><span class="sw" aria-hidden="true"></span></label>
+      </div>
+    </div>
+  </div>
+  <header>
+    <div class="brand">
+      <h1>Amazonカテゴリ逆引き</h1>
+      <span class="unofficial">非公式ツール</span>
+    </div>
+    <p class="lead">探している商品の名前を入れると、Amazon.co.jp のどの売り場（カテゴリ）に並んでいるかを表示します。売り場を選んで、そのカテゴリの中だけを検索することもできます。</p>
+    <p class="caveat">※ 表示する売り場や分類は Amazon の画面で一つずつ確かめたものではありません。参考程度にご覧ください。</p>
+  </header>
+
+  <form class="search" id="search-form" role="search" autocomplete="off">
+    <label for="q">商品の名前</label>
+    <div class="field">
+      <input id="q" name="q" type="search" enterkeyhint="search">
+      <button id="clear" type="button">消す</button>
+    </div>
+  </form>
+
+  <div id="results" aria-live="polite"></div>
+
+  <aside class="howto" id="howto" aria-labelledby="howto-h">
+    <h2 id="howto-h">Amazon の画面で確かめる方法</h2>
+    <ol>
+      <li>上の「Amazon全体で検索」を押し、検索結果を開きます。</li>
+      <li>検索結果から商品を選んで商品ページを開くと、ページ上部に「家電&amp;カメラ › アクセサリ・サプライ › …」のような売り場の階層が表示されます。</li>
+    </ol>
+  </aside>
+
+  <section aria-labelledby="list-h">
+    <h2 id="list-h">売り場（大カテゴリ）一覧</h2>
+    <div class="dept-list" id="dept-list"></div>
+  </section>
+
+  <footer>
+    <p>このページは Amazon とは関係のない個人の非公式ツールです。カテゴリ名と階層は 2026年11月時点の Amazon.co.jp の売り場構成をもとにした目安で、Amazon 側の変更により名前や位置が変わることがあります。正確な位置は「Amazon全体で検索」から確かめてください。</p>
+    <p>入力した言葉はこのページの中だけで使い、どこにも送信しません（Amazon のボタンを押したときだけ、その言葉で Amazon の検索ページを開きます）。</p>
+  </footer>
+</div>
+
+<script>
+// 売り場: キー => [表示名, Amazon の検索エイリアス(i=)]
+const DEPTS = {
+  el:  ["家電&カメラ", "electronics"],
+  ap:  ["大型家電", "appliances"],
+  pc:  ["パソコン・周辺機器", "computers"],
+  hk:  ["ホーム&キッチン", "kitchen"],
+  diy: ["DIY・工具・ガーデン", "diy"],
+  dr:  ["ドラッグストア", "hpc"],
+  bt:  ["ビューティー", "beauty"],
+  fd:  ["食品・飲料・お酒", "food-beverage"],
+  fa:  ["ファッション", "fashion"],
+  sp:  ["スポーツ&アウトドア", "sporting"],
+  car: ["車&バイク", "automotive"],
+  bb:  ["ベビー&マタニティ", "baby"],
+  pet: ["ペット用品", "pets"],
+  of:  ["文房具・オフィス用品", "office-products"],
+  toy: ["おもちゃ", "toys"],
+  hb:  ["ホビー", "hobby"],
+  gm:  ["ゲーム", "videogames"],
+  mi:  ["楽器・音響機器", "mi"],
+  ind: ["産業・研究開発用品", "industrial"],
+  bk:  ["本", "stripbooks"],
+};
+
+// 商品名|別名(カンマ区切り)|売り場:階層>階層;売り場:階層  （最初の売り場がいちばん多く並ぶ場所）
+const DATA = `
+電源タップ|延長コード,テーブルタップ,OAタップ,コンセントタップ,電源コード,タップ|pc:PCアクセサリ・サプライ>電源タップ;el:アクセサリ・サプライ>電源タップ・延長コード;diy:電設資材>電源タップ・延長コード
+USB充電器|充電器,ACアダプタ,ACアダプター,急速充電器,USB-C充電器,スマホ充電器|el:携帯電話・スマートフォン>充電器・アダプター;pc:PCアクセサリ・サプライ>充電器・アダプター
+モバイルバッテリー|ポータブル充電器,携帯充電器|el:携帯電話・スマートフォン>モバイルバッテリー
+ポータブル電源|ポタ電,蓄電池,発電機|el:アクセサリ・サプライ>ポータブル電源;sp:アウトドア>アウトドア用電源;diy:防犯・防災>発電機・電源
+USBケーブル|充電ケーブル,ライトニングケーブル,Type-Cケーブル,タイプCケーブル|el:携帯電話・スマートフォン>ケーブル;pc:PCアクセサリ・サプライ>ケーブル
+HDMIケーブル|映像ケーブル,ディスプレイケーブル|pc:PCアクセサリ・サプライ>ケーブル;el:テレビ・レコーダー>テレビアクセサリ>ケーブル
+LANケーブル|イーサネットケーブル,ネットワークケーブル|pc:ネットワーク機器>LANケーブル
+Wi-Fiルーター|無線LANルーター,ルーター,WiFi中継器,中継器,メッシュWiFi|pc:ネットワーク機器>無線LANルーター
+乾電池|電池,単3電池,単4電池,充電池,ボタン電池,アルカリ電池|el:電池・充電池
+スマホケース|iPhoneケース,携帯ケース,手帳型ケース,スマホカバー|el:携帯電話・スマートフォン>ケース・カバー
+保護フィルム|ガラスフィルム,液晶保護フィルム,保護ガラス|el:携帯電話・スマートフォン>液晶保護フィルム
+イヤホン|ワイヤレスイヤホン,ヘッドホン,ヘッドフォン,イヤフォン,Bluetoothイヤホン,ノイズキャンセリング|el:オーディオ>ヘッドホン・イヤホン
+スピーカー|Bluetoothスピーカー,スマートスピーカー,サウンドバー|el:オーディオ>スピーカー
+テレビ|液晶テレビ,有機ELテレビ,TV,チューナーレステレビ|el:テレビ・レコーダー>テレビ
+テレビ台|テレビボード,ローボード,テレビスタンド|hk:家具>テレビ台・ローボード
+ノートパソコン|ノートPC,パソコン,PC,ラップトップ|pc:ノートパソコン
+デスクトップパソコン|デスクトップPC,ミニPC|pc:デスクトップパソコン
+タブレット|iPad,タブレットPC,Androidタブレット|pc:タブレット
+マウス|ワイヤレスマウス,トラックボール,マウスパッド|pc:キーボード・マウス・入力機器>マウス
+キーボード|ワイヤレスキーボード,テンキー,メカニカルキーボード|pc:キーボード・マウス・入力機器>キーボード
+モニター|ディスプレイ,PCモニター,液晶モニター,ゲーミングモニター,モバイルモニター|pc:ディスプレイ・モニター
+外付けSSD|外付けHDD,ハードディスク,SSD,HDD,ポータブルSSD|pc:外付けドライブ・ストレージ;pc:PCパーツ>内蔵ドライブ
+USBメモリ|フラッシュメモリ,USBフラッシュドライブ|pc:フラッシュメモリ>USBメモリ
+SDカード|microSD,マイクロSD,メモリーカード,microSDカード|pc:フラッシュメモリ>SDカード;el:カメラ>メモリーカード
+プリンター|複合機,インクジェットプリンター,レーザープリンター|pc:プリンター・スキャナー
+インクカートリッジ|インク,トナー,プリンターインク,詰め替えインク|pc:PCアクセサリ・サプライ>インク・トナー;of:OA・事務用品>インク・トナー
+USBハブ|ドッキングステーション,ハブ,変換アダプタ|pc:PCアクセサリ・サプライ>USBハブ
+Webカメラ|ウェブカメラ,ウェブカム|pc:PCアクセサリ・サプライ>Webカメラ
+PCスタンド|ノートパソコンスタンド,モニターアーム,タブレットスタンド|pc:PCアクセサリ・サプライ>スタンド・アーム
+スマートウォッチ|AppleWatch,アップルウォッチ,活動量計,スマートバンド|el:ウェアラブル端末>スマートウォッチ
+デジタルカメラ|デジカメ,ミラーレス,一眼レフ,カメラ,アクションカメラ|el:カメラ>デジタルカメラ
+三脚|自撮り棒,スマホ三脚,一脚,ジンバル|el:カメラ>三脚・一脚
+防犯カメラ|監視カメラ,見守りカメラ,ネットワークカメラ,ペットカメラ|el:カメラ>防犯カメラ;diy:防犯・防災>防犯カメラ
+電子レンジ|オーブンレンジ,レンジ|el:キッチン家電>電子レンジ・オーブンレンジ
+炊飯器|炊飯ジャー|el:キッチン家電>炊飯器
+電気ケトル|ケトル,電気ポット,湯沸かし|el:キッチン家電>電気ケトル・ポット
+コーヒーメーカー|エスプレッソマシン,コーヒーミル|el:キッチン家電>コーヒーメーカー
+トースター|オーブントースター,ホットサンドメーカー|el:キッチン家電>トースター
+ホットプレート|電気鍋,たこ焼き器|el:キッチン家電>ホットプレート
+冷蔵庫|冷凍庫,冷凍ストッカー|ap:冷蔵庫・冷凍庫
+洗濯機|ドラム式洗濯機,乾燥機,衣類乾燥機|ap:洗濯機・乾燥機
+食洗機|食器洗い乾燥機,食器洗い機|ap:食器洗い乾燥機
+掃除機|コードレス掃除機,スティッククリーナー,ハンディクリーナー,クリーナー|el:生活家電>掃除機
+ロボット掃除機|お掃除ロボット,ルンバ|el:生活家電>掃除機>ロボット掃除機
+空気清浄機|空気清浄器|el:季節・空調家電>空気清浄機
+加湿器|超音波加湿器,スチーム加湿器|el:季節・空調家電>加湿器
+除湿機|除湿器,衣類乾燥除湿機|el:季節・空調家電>除湿機
+扇風機|サーキュレーター,ハンディファン,首かけ扇風機|el:季節・空調家電>扇風機・サーキュレーター
+ヒーター|電気ストーブ,セラミックヒーター,ストーブ,ファンヒーター,こたつ,電気毛布|el:季節・空調家電>暖房器具
+エアコン|クーラー,ルームエアコン|ap:エアコン
+ドライヤー|ヘアドライヤー,ヘアアイロン,コテ|el:理美容家電>ヘアドライヤー・ヘアアイロン
+電動歯ブラシ|音波歯ブラシ,口腔洗浄器|el:理美容家電>オーラルケア
+シェーバー|電気シェーバー,髭剃り,ヒゲソリ,脱毛器,バリカン|el:理美容家電>シェーバー・脱毛器
+体重計|体組成計,ヘルスメーター|el:健康家電>体重計・体組成計
+血圧計|体温計,パルスオキシメーター|el:健康家電>計測器;dr:ヘルスケア>計測器
+マッサージ器|マッサージガン,ネックマッサージャー,マッサージ機|el:健康家電>マッサージ器
+歯ブラシ|歯磨き粉,デンタルフロス,マウスウォッシュ,歯間ブラシ|dr:オーラルケア
+マスク|不織布マスク,使い捨てマスク|dr:衛生用品>マスク
+トイレットペーパー|ティッシュ,ティッシュペーパー,キッチンペーパー,ウェットティッシュ|dr:日用消耗品>紙製品
+洗濯洗剤|柔軟剤,漂白剤,洗剤,ジェルボール|dr:日用消耗品>洗濯用洗剤
+食器用洗剤|食洗機用洗剤,台所用洗剤|dr:日用消耗品>キッチン用洗剤
+ゴミ袋|ポリ袋,ごみ袋,レジ袋|dr:日用消耗品>ゴミ袋;hk:キッチン用品>ゴミ袋
+ゴミ箱|ダストボックス,ごみ箱|hk:インテリア>ゴミ箱
+虫よけ|殺虫剤,蚊取り線香,ゴキブリ駆除,虫除けスプレー|dr:日用消耗品>殺虫剤・虫よけ;diy:ガーデニング>害虫・害獣対策
+消臭剤|芳香剤,消臭スプレー|dr:日用消耗品>消臭剤・芳香剤
+医薬品|目薬,風邪薬,湿布,頭痛薬,薬|dr:医薬品
+絆創膏|ばんそうこう,包帯,ガーゼ,救急箱|dr:衛生用品>救急用品
+サプリメント|ビタミン,マルチビタミン,青汁|dr:サプリメント
+プロテイン|ホエイプロテイン,ソイプロテイン|dr:サプリメント>プロテイン;sp:トレーニング・フィットネス>プロテイン
+化粧水|乳液,美容液,スキンケア,保湿クリーム,日焼け止め|bt:スキンケア
+シャンプー|コンディショナー,トリートメント,ヘアオイル|bt:ヘアケア
+ボディソープ|石鹸,せっけん,ハンドソープ,入浴剤|bt:ボディケア;dr:日用消耗品>ハンドソープ
+化粧品|ファンデーション,口紅,リップ,アイシャドウ,マスカラ,メイク|bt:メイクアップ
+香水|フレグランス,オードトワレ|bt:フレグランス
+フライパン|鍋,圧力鍋,土鍋,やかん|hk:キッチン用品・食器>鍋・フライパン
+包丁|まな板,キッチンばさみ,ピーラー|hk:キッチン用品・食器>包丁・まな板
+食器|皿,茶碗,マグカップ,グラス,箸,カトラリー|hk:キッチン用品・食器>食器・グラス
+水筒|タンブラー,マグボトル,ステンレスボトル,ボトル|hk:キッチン用品・食器>水筒・タンブラー;sp:アウトドア>水筒・ボトル
+弁当箱|ランチボックス,お弁当箱|hk:キッチン用品・食器>弁当箱
+保存容器|タッパー,ジップロック,ラップ,アルミホイル,密閉容器|hk:キッチン用品・食器>保存容器・調味料入れ
+収納ボックス|収納ケース,衣装ケース,カラーボックス,押し入れ収納|hk:収納用品
+ハンガー|すべらないハンガー,ズボンハンガー|hk:収納用品>ハンガー
+スチールラック|本棚,棚,ラック,メタルラック,シェルフ|hk:家具>棚・ラック
+デスク|机,パソコンデスク,学習机,昇降デスク|hk:家具>デスク;of:オフィス家具
+オフィスチェア|椅子,イス,ゲーミングチェア,デスクチェア,チェア|hk:家具>チェア;of:オフィス家具>オフィスチェア
+ソファ|ソファー,座椅子,クッション|hk:家具>ソファ
+ベッド|ベッドフレーム,マットレス,すのこ|hk:家具>ベッド;hk:寝具>マットレス
+寝具|枕,まくら,布団,掛け布団,毛布,シーツ|hk:寝具
+カーテン|ブラインド,カーテンレール,遮光カーテン|hk:インテリア>カーテン・ブラインド
+ラグ|カーペット,マット,玄関マット,ジョイントマット|hk:インテリア>ラグ・カーペット・マット
+掛け時計|置き時計,目覚まし時計,時計|hk:インテリア>時計
+タオル|バスタオル,フェイスタオル,ハンドタオル|hk:バス・洗面用品>タオル
+掃除用品|モップ,雑巾,フローリングワイパー,スポンジ,ほうき|hk:掃除用品
+アロマディフューザー|アロマ,エッセンシャルオイル,アロマオイル|hk:インテリア>アロマ・お香;bt:アロマ
+電球|LED電球,蛍光灯,蛍光管|diy:照明>電球
+シーリングライト|天井照明,照明器具,ペンダントライト,照明|diy:照明>天井照明
+デスクライト|電気スタンド,卓上ライト,スタンドライト|diy:照明>スタンドライト
+懐中電灯|LEDライト,ハンディライト,ヘッドライト,ヘッドランプ|diy:照明>懐中電灯;sp:アウトドア>ランタン・ライト
+ドライバー（工具）|ドライバー,精密ドライバー,ドライバーセット|diy:作業工具>ドライバー
+電動ドリル|インパクトドライバー,ドリルドライバー,電動ドライバー,電動工具|diy:電動工具
+工具セット|工具,レンチ,ペンチ,スパナ,ハンマー|diy:作業工具
+結束バンド|インシュロック,ケーブルタイ,マジックテープ|diy:電設資材>結束バンド;pc:PCアクセサリ・サプライ>ケーブル整理
+配線カバー|ケーブルボックス,ケーブル収納,ケーブルトレー,モール,配線モール|diy:電設資材>配線モール;pc:PCアクセサリ・サプライ>ケーブル整理
+テープ|養生テープ,ガムテープ,ダクトテープ,両面テープ,マスキングテープ|diy:接着・補修用品>テープ;of:事務用品>テープ
+接着剤|ボンド,瞬間接着剤,接着剤 強力|diy:接着・補修用品>接着剤
+塗料|ペンキ,スプレー塗料,刷毛|diy:塗装用品
+植木鉢|プランター,鉢,鉢植え|diy:ガーデニング>鉢・プランター
+培養土|土,肥料,腐葉土,種|diy:ガーデニング>用土・肥料
+ホース|散水ホース,ホースリール,じょうろ|diy:ガーデニング>散水用品
+作業手袋|軍手,手袋 作業用,ゴム手袋,保護メガネ|diy:安全・保護用品;ind:安全・保護用品
+脚立|はしご,踏み台|diy:脚立・はしご
+防災グッズ|防災セット,防災リュック,非常用持ち出し袋,簡易トイレ|diy:防犯・防災
+非常食|保存食,保存水,長期保存|fd:非常食・保存食;diy:防犯・防災
+テスター|マルチメーター,はんだごて,はんだ|ind:計測・検査機器;diy:作業工具>はんだごて
+ドライブレコーダー|ドラレコ,ドライブレコーダー 前後|car:カーエレクトロニクス>ドライブレコーダー
+カーナビ|カーオーディオ,ETC,ETC車載器|car:カーエレクトロニクス
+カー用品|車用芳香剤,スマホホルダー 車,車載ホルダー,シートカバー,車用品|car:カー用品
+タイヤ|スタッドレスタイヤ,タイヤチェーン,ホイール|car:タイヤ・ホイール
+洗車用品|カーシャンプー,洗車,コーティング剤,ワックス|car:洗車・メンテナンス用品
+バイク用品|バイクヘルメット,ヘルメット,バイクカバー|car:バイク用品
+自転車|クロスバイク,ママチャリ,電動アシスト自転車,折りたたみ自転車|sp:自転車
+自転車用品|自転車ライト,サイクルライト,自転車ロック,空気入れ|sp:自転車>パーツ・アクセサリ
+テント|キャンプ用品,寝袋,シュラフ,タープ,アウトドアチェア|sp:アウトドア>テント・タープ
+ランタン|キャンプライト,LEDランタン|sp:アウトドア>ランタン・ライト
+クーラーボックス|保冷バッグ,保冷剤|sp:アウトドア>クーラーボックス
+トレーニング用品|ヨガマット,ダンベル,腹筋ローラー,トレーニングチューブ,フィットネス|sp:トレーニング・フィットネス
+ゴルフ用品|ゴルフクラブ,ドライバー,アイアン,パター,ゴルフボール|sp:ゴルフ
+釣り具|釣り竿,釣竿,リール,ルアー,釣具|sp:フィッシング
+水着|ラッシュガード,ゴーグル,スイムキャップ|sp:水泳;fa:水着
+スニーカー|靴,シューズ,ランニングシューズ,サンダル,ブーツ,スリッパ|fa:シューズ;sp:ランニング>シューズ
+バッグ|リュック,バックパック,ビジネスバッグ,トートバッグ,ショルダーバッグ|fa:バッグ
+スーツケース|キャリーケース,キャリーバッグ,トラベルバッグ|fa:スーツケース・旅行用品
+財布|長財布,キーケース,名刺入れ,カードケース|fa:財布・ファッション小物
+傘|折りたたみ傘,日傘,レインコート,雨傘|fa:ファッション小物>傘・レイングッズ
+服|Tシャツ,パーカー,ジャケット,コート,ズボン,パンツ,下着,靴下,パジャマ|fa:メンズ・レディース
+メガネ|眼鏡,サングラス,ブルーライトカット,老眼鏡|fa:ファッション小物>メガネ・サングラス
+腕時計|ウォッチ,アナログ腕時計|fa:腕時計
+ボールペン|ペン,シャープペンシル,シャーペン,蛍光ペン,万年筆,筆記用具|of:筆記具
+ノート|ルーズリーフ,メモ帳,手帳,付箋,ふせん|of:ノート・紙製品
+ファイル|クリアファイル,バインダー,ファイルボックス|of:ファイル・バインダー
+はさみ|ハサミ,カッター,ホッチキス,ステープラー,のり|of:事務用品
+コピー用紙|印刷用紙,A4用紙,プリンター用紙,写真用紙|of:OA・事務用品>コピー用紙;pc:PCアクセサリ・サプライ>用紙
+電卓|計算機|of:事務用品>電卓
+シュレッダー|ラミネーター|of:オフィス機器
+ラベルライター|ラベルプリンター,テプラ|of:オフィス機器>ラベルライター
+おむつ|オムツ,紙おむつ,おしりふき,パンツタイプおむつ|bb:おむつ・トイレ
+哺乳瓶|粉ミルク,ミルク,授乳クッション,離乳食|bb:授乳・お食事
+ベビーカー|チャイルドシート,抱っこ紐,抱っこひも|bb:ベビーカー・チャイルドシート・抱っこ紐
+ドッグフード|キャットフード,ペットフード,おやつ 犬,おやつ 猫|pet:犬用品>フード;pet:猫用品>フード
+猫砂|ペットシーツ,トイレシート,猫トイレ|pet:猫用品>トイレ用品;pet:犬用品>トイレ用品
+ペットキャリー|ケージ,ペットサークル,首輪,リード|pet:犬用品;pet:猫用品
+水槽|アクアリウム,熱帯魚,金魚 水槽|pet:熱帯魚・アクアリウム
+ぬいぐるみ|人形,ぬいぐるみ 大きい|toy:ぬいぐるみ・人形
+ブロック|レゴ,LEGO,知育玩具,積み木|toy:ブロック・知育玩具
+ボードゲーム|トランプ,カードゲーム,パズル,ジグソーパズル|toy:ゲーム・パズル
+プラモデル|ガンプラ,フィギュア,模型,鉄道模型|hb:プラモデル・模型;hb:フィギュア
+ゲーム機|Switch,ニンテンドースイッチ,プレイステーション,PS5,ゲームソフト,コントローラー|gm
+ギター|エレキギター,アコースティックギター,ウクレレ,ベース,ギター弦|mi:ギター・ベース
+電子ピアノ|電子キーボード,キーボード 楽器,シンセサイザー|mi:鍵盤楽器
+マイク|コンデンサーマイク,オーディオインターフェース,配信用マイク|mi:レコーディング・PA機器;pc:PCアクセサリ・サプライ>マイク
+米|お米,無洗米,玄米|fd:米・雑穀
+水|ミネラルウォーター,天然水,炭酸水|fd:水・ソフトドリンク
+コーヒー|コーヒー豆,インスタントコーヒー,ドリップコーヒー|fd:コーヒー
+お茶|緑茶,紅茶,麦茶,ティーバッグ|fd:お茶・紅茶
+お酒|ビール,日本酒,ワイン,ウイスキー,焼酎|fd:お酒
+お菓子|チョコレート,スナック菓子,クッキー,グミ|fd:スナック・お菓子
+調味料|醤油,しょうゆ,味噌,みそ,だし,オリーブオイル|fd:調味料
+インスタント食品|カップ麺,カップラーメン,レトルト,レトルトカレー,パスタ|fd:インスタント食品
+本|小説,漫画,マンガ,コミック,参考書,雑誌,絵本|bk
+`;
+
+const ITEMS = DATA.trim().split("\n").map(line => {
+  const [name, alias, paths] = line.split("|");
+  return {
+    name,
+    terms: [name.replace(/（.*?）/g, ""), ...(alias ? alias.split(",") : [])],
+    paths: paths.split(";").map(p => {
+      const [d, rest] = p.split(":");
+      return { d, sub: rest ? rest.split(">") : [] };
+    }),
+  };
+});
+
+// 表記ゆれをそろえる: 全角半角・大文字小文字・カタカナひらがな・空白や記号
+function norm(s) {
+  return s.normalize("NFKC").toLowerCase()
+    .replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .replace(/[\s・\-_/／、,。]/g, "");
+}
+function bigrams(s) { const a = []; for (let i = 0; i < s.length - 1; i++) a.push(s.slice(i, i + 2)); return a; }
+function dice(a, b) {
+  const A = bigrams(a), B = bigrams(b);
+  if (!A.length || !B.length) return 0;
+  const pool = [...B]; let hit = 0;
+  for (const g of A) { const i = pool.indexOf(g); if (i >= 0) { hit++; pool.splice(i, 1); } }
+  return 2 * hit / (A.length + B.length);
+}
+function scoreTerm(q, t, isName) {
+  if (!q || !t) return 0;
+  if (q === t) return isName ? 100 : 96;
+  if (t.length >= 2 && q.includes(t)) return 70 + Math.min(t.length, 10);
+  if (q.length >= 2 && t.includes(q)) return 50 + 30 * q.length / t.length;
+  const d = dice(q, t);
+  return d >= 0.5 ? d * 60 : 0;
+}
+
+ITEMS.forEach(it => { it.nterms = it.terms.map(norm); });
+
+function search(raw) {
+  const full = norm(raw);
+  const parts = raw.split(/[\s　]+/).map(norm).filter(p => p.length >= 2);
+  const queries = [...new Set([full, ...parts])];
+  const out = [];
+  for (const it of ITEMS) {
+    let best = 0, via = "";
+    it.nterms.forEach((t, i) => {
+      for (const q of queries) {
+        const s = scoreTerm(q, t, i === 0) * (q === full ? 1 : 0.85);
+        if (s > best) { best = s; via = it.terms[i]; }
+      }
+    });
+    if (best >= 30) out.push({ it, score: best, via });
+  }
+  out.sort((a, b) => b.score - a.score);
+  return out.slice(0, 6);
+}
+
+const amazon = (k, alias) => "https://www.amazon.co.jp/s?k=" + encodeURIComponent(k) + (alias ? "&i=" + alias : "");
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function placeHTML(p, i, keyword, main) {
+  const [dname, alias] = DEPTS[p.d];
+  const crumbs = p.sub.map((s, j) => `${j ? '<span class="sep" aria-hidden="true">›</span>' : ""}<span>${esc(s)}</span>`).join("");
+  return `<div class="place${i === 0 ? " first" : ""}">
+    <span class="rank">${i === 0 ? "主な売り場" : "ここにもある"}</span>
+    <div class="path">
+      <span class="dept">${esc(dname)}</span>
+      ${crumbs ? `<div class="crumbs" aria-label="階層">${crumbs}</div>` : ""}
+      <div class="actions">
+        <a class="btn" href="${amazon(keyword, alias)}" target="_blank" rel="noopener">「${esc(dname)}」で${main ? "" : `「${esc(keyword)}」を`}検索</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+function cardHTML(r, keyword, main) {
+  const showVia = norm(r.via) !== norm(r.it.name.replace(/（.*?）/g, ""));
+  return `<article class="sign-card${main ? " main" : ""}">
+    <div class="sign-head">
+      <h3 class="item-name">${esc(r.it.name)}</h3>
+      ${showVia ? `<span class="matched">「${esc(r.via)}」として見つかりました</span>` : ""}
+    </div>
+    <div class="places">${r.it.paths.map((p, i) => placeHTML(p, i, keyword, main)).join("")}</div>
+  </article>`;
+}
+
+const $q = document.getElementById("q");
+const $res = document.getElementById("results");
+
+function render() {
+  const raw = $q.value.trim();
+  const url = new URL(location.href);
+  if (raw) url.searchParams.set("q", raw); else url.searchParams.delete("q");
+  history.replaceState(null, "", url);
+
+  document.getElementById("howto").hidden = !raw; // 「Amazon全体で検索」ボタンがあるときだけ手順を出す
+  if (!raw) {
+    $res.innerHTML = `<p class="status">上の欄に商品の名前を入れてください。下の一覧から選ぶこともできます。</p>`;
+    return;
+  }
+  const hits = search(raw);
+  const allLink = `<a class="btn" href="${amazon(raw)}" target="_blank" rel="noopener">Amazon全体で「${esc(raw)}」を検索</a>`;
+  if (!hits.length) {
+    $res.innerHTML = `<div class="empty">
+      <p><strong>「${esc(raw)}」はこのページの辞書に見つかりませんでした。</strong></p>
+      <p>別の呼び方（例: 「延長コード」→「電源タップ」）やひらがなで入れ直すか、Amazon 全体で検索して、商品ページ上部の売り場の階層を確かめてください。</p>
+      <div>${allLink}</div>
+    </div>`;
+    return;
+  }
+  const top = hits[0].score;
+  const strong = hits.filter(h => h.score >= Math.min(90, top));
+  const rest = hits.filter(h => !strong.includes(h));
+  const exact = top >= 90;
+  $res.innerHTML = `
+    <p class="status">${exact
+      ? `<strong>「${esc(raw)}」</strong>の置き場所${strong.length > 1 ? `（同じ呼び方の商品が ${strong.length} 種類あります）` : ""}`
+      : `<strong>「${esc(raw)}」</strong>に近い商品が見つかりました。いちばん近いものから順に表示します。`}</p>
+    ${strong.map(h => cardHTML(h, raw, true)).join("")}
+    <div>${allLink}</div>
+    ${rest.length ? `<div class="others"><h2>他の候補</h2>${rest.map(h => cardHTML(h, raw, false)).join("")}</div>` : ""}`;
+}
+
+function setQuery(v) { $q.value = v; render(); $q.focus(); }
+
+document.getElementById("search-form").addEventListener("submit", e => { e.preventDefault(); render(); });
+$q.addEventListener("input", render);
+document.getElementById("clear").addEventListener("click", () => setQuery(""));
+
+// 売り場一覧（各売り場の主な商品）
+const list = document.getElementById("dept-list");
+for (const [key, [dname, alias]] of Object.entries(DEPTS)) {
+  const items = ITEMS.filter(it => it.paths[0].d === key).slice(0, 8);
+  const box = document.createElement("div");
+  box.className = "dept-box";
+  box.innerHTML = `<h3><span>${esc(dname)}</span><a href="https://www.amazon.co.jp/s?i=${alias}&k=" target="_blank" rel="noopener">Amazonで開く</a></h3><div class="chips"></div>`;
+  const chips = box.querySelector(".chips");
+  items.forEach(it => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = it.name;
+    b.addEventListener("click", () => { setQuery(it.name.replace(/（.*?）/g, "")); window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
+    chips.appendChild(b);
+  });
+  list.appendChild(box);
+}
+
+// 表示の設定
+const root = document.documentElement;
+function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+const themeBtn = document.getElementById("theme-btn");
+function syncThemeBtn() {
+  const dark = root.dataset.theme === "dark", label = dark ? "ライトモードにする" : "ダークモードにする";
+  themeBtn.title = label; themeBtn.setAttribute("aria-label", label);
+}
+syncThemeBtn();
+document.getElementById("color-" + (root.dataset.color || "green")).checked = true;
+document.getElementById("size-" + (root.dataset.size || "m")).checked = true;
+document.querySelectorAll('input[name="size"]').forEach(r => r.addEventListener("change", () => {
+  if (r.value === "m") delete root.dataset.size; else root.dataset.size = r.value;
+  save("acat-size", r.value);
+}));
+themeBtn.addEventListener("click", () => {
+  const next = root.dataset.theme === "dark" ? "light" : "dark";
+  if (next === "dark") root.dataset.theme = "dark"; else delete root.dataset.theme;
+  save("acat-theme", next);
+  syncThemeBtn();
+});
+document.querySelectorAll('input[name="color"]').forEach(r => r.addEventListener("change", () => {
+  if (r.value === "green") delete root.dataset.color; else root.dataset.color = r.value;
+  save("acat-color", r.value);
+}));
+
+$q.value = new URL(location.href).searchParams.get("q") ?? "電源タップ";
+render();
+</script>
+</body>
+</html>

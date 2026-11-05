@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>アクセサリーはAmazonのどのカテゴリ？売り場と検索リンク｜Amazonカテゴリ逆引き</title>
+<meta name="description" content="アクセサリーは Amazon.co.jp では主に「ファッション › ジュエリー」に並んでいます。売り場を絞った Amazon 検索へのリンク付き（非公式・参考情報）。">
+<link rel="canonical" href="https://kt004.github.io/category-finder/item/%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B5%E3%83%AA%E3%83%BC/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Amazonカテゴリ逆引き">
+<meta property="og:title" content="アクセサリーはAmazonのどのカテゴリ？売り場と検索リンク｜Amazonカテゴリ逆引き">
+<meta property="og:description" content="アクセサリーは Amazon.co.jp では主に「ファッション › ジュエリー」に並んでいます。売り場を絞った Amazon 検索へのリンク付き（非公式・参考情報）。">
+<meta property="og:url" content="https://kt004.github.io/category-finder/item/%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B5%E3%83%AA%E3%83%BC/">
+<meta property="og:image" content="https://kt004.github.io/category-finder/og.png">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Amazonカテゴリ逆引き","item":"https://kt004.github.io/category-finder/"},{"@type":"ListItem","position":2,"name":"商品一覧","item":"https://kt004.github.io/category-finder/item/"},{"@type":"ListItem","position":3,"name":"アクセサリー","item":"https://kt004.github.io/category-finder/item/%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B5%E3%83%AA%E3%83%BC/"}]}</script>
+<script>
+// 保存した表示設定を、描画前に反映する（ちらつき防止）
+try {
+  const t = localStorage.getItem("acat-theme"), c = localStorage.getItem("acat-color"), z = localStorage.getItem("acat-size");
+  if (z === "s" || z === "l") document.documentElement.dataset.size = z; // 既定は中
+  if (t === "dark") document.documentElement.dataset.theme = t; // 既定はライト
+  if (c && c !== "green") document.documentElement.dataset.color = c;
+} catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+Antique:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* 売り場の通路案内板: 答えは吊り下げ看板のように大きく、階層は棚の段として並べる */
+/* 色の種類（data-color）: 案内板の色と背景のわずかな色味を、ライト用(-l)とダーク用(-d)の組で持つ */
+:root {
+  --sign-l: #0e5f52; --text-l: #0e5f52; --paper-l: #eef1ec;   /* 深緑（既定） */
+  --sign-d: #1f8a77; --text-d: #6fd6bf; --paper-d: #101719; --surface-d: #182225; --line-d: #2c3a3d;
+}
+:root[data-color="indigo"] {                                    /* 藍 */
+  --sign-l: #27479a; --text-l: #27479a; --paper-l: #eef0f5;
+  --sign-d: #3d67c9; --text-d: #a3bcff; --paper-d: #0f141c; --surface-d: #171e2a; --line-d: #2b3446;
+}
+:root[data-color="enji"] {                                      /* えんじ */
+  --sign-l: #9b2335; --text-l: #9b2335; --paper-l: #f4efee;
+  --sign-d: #b8394d; --text-d: #ffa3b0; --paper-d: #191213; --surface-d: #231a1c; --line-d: #3d2b2e;
+}
+:root[data-color="sumi"] {                                      /* 墨 */
+  --sign-l: #2f363b; --text-l: #2f363b; --paper-l: #f1f1ef;
+  --sign-d: #56626a; --text-d: #cfd8dd; --paper-d: #131516; --surface-d: #1c1f21; --line-d: #33383b;
+}
+
+/* ライト（既定） */
+:root {
+  --paper: var(--paper-l); /* 背景 */
+  --surface: #ffffff;      /* カード面 */
+  --ink: #17262d;          /* 本文 */
+  --muted: #56666d;        /* 補足 */
+  --line: #cdd5cf;         /* 罫線 */
+  --sign: var(--sign-l);   /* 案内板の色（アクセント） */
+  --sign-ink: #ffffff;     /* 案内板の上の文字 */
+  --sign-text: var(--text-l); /* 地の上に置くアクセント色の文字 */
+  --tag: #f3c42f;          /* 棚札の黄色 */
+  --tag-ink: #2a2200;
+  --font-display: "Zen Kaku Gothic Antique", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  --font-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --paper: var(--paper-d); --surface: var(--surface-d); --ink: #e4ebe7; --muted: #9aaba5;
+  --line: var(--line-d); --sign: var(--sign-d); --sign-text: var(--text-d); --sign-ink: #f4fffb; --tag: #e6b821; --tag-ink: #231c00;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+/* 文字サイズ（data-size）: 寸法は rem 指定なので、基準を変えると項目ごと拡大・縮小される */
+:root[data-size="s"] { font-size: 87.5%; }
+:root[data-size="l"] { font-size: 118.75%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 1rem; line-height: 1.7;
+}
+a { color: var(--sign-text); }
+:focus-visible { outline: 3px solid var(--tag); outline-offset: 2px; border-radius: 4px; }
+
+.wrap { max-width: 1500px; margin: 0 auto; padding: 0 max(16px, 4vw); }
+
+/* 表示の設定（表示モード・色） */
+.prefs { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem 1rem; padding-top: 1rem; font-size: .85rem; position: relative; }
+.pref { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.prefs input { position: absolute; opacity: 0; width: 1px; height: 1px; clip-path: inset(50%); }
+.theme-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; padding: 0; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--ink);
+}
+.size-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
+.size-seg label { display: inline-flex; align-items: center; justify-content: center; width: 2.1rem; height: 2rem; cursor: pointer; color: var(--muted); font-weight: 700; line-height: 1; }
+.size-seg label:hover { color: var(--ink); }
+.size-seg input:checked + label { background: var(--sign); color: var(--sign-ink); }
+label[for="size-s"] { font-size: .75rem; }
+label[for="size-m"] { font-size: .95rem; }
+label[for="size-l"] { font-size: 1.2rem; }
+.theme-btn:hover { border-color: var(--muted); }
+.theme-btn svg { width: 1.05rem; height: 1.05rem; }
+.theme-btn .i-sun { display: none; }
+:root[data-theme="dark"] .theme-btn .i-sun { display: block; }
+:root[data-theme="dark"] .theme-btn .i-moon { display: none; }
+.swatches { display: flex; flex-wrap: wrap; gap: .35rem; }
+.swatches label {
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer; width: 2rem; height: 2rem;
+  border: 1px solid var(--line); border-radius: 50%; background: var(--surface);
+}
+.swatches label:hover { border-color: var(--muted); }
+.swatches input:checked + label { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.sw { width: 1.2rem; height: 1.2rem; border-radius: 50%; flex: none; }
+label[for="color-green"] .sw { background: #0e5f52; }
+label[for="color-indigo"] .sw { background: #27479a; }
+label[for="color-enji"] .sw { background: #9b2335; }
+label[for="color-sumi"] .sw { background: #2f363b; box-shadow: 0 0 0 1px var(--line); }
+.prefs input:focus-visible + label { outline: 3px solid var(--tag); outline-offset: 1px; }
+
+header { padding: 1rem 0 1.2rem; }
+.brand { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; }
+h1 {
+  font-family: var(--font-display); font-weight: 900; font-size: 2rem; line-height: 1.2;
+  margin: 0; letter-spacing: .02em; text-wrap: balance;
+}
+.unofficial { font-size: .8rem; color: var(--muted); border: 1px solid var(--line); padding: .05rem .5rem; border-radius: 999px; }
+.lead { margin: .5rem 0 0; color: var(--muted); }
+.caveat { margin: .4rem 0 0; color: var(--muted); font-size: .85rem; }
+
+/* 検索欄 */
+.search { display: grid; gap: .6rem; padding: 1rem 0 .4rem; }
+.search label { font-weight: 700; font-size: .95rem; }
+.field { display: flex; gap: .5rem; }
+#q {
+  flex: 1; min-width: 0; font: inherit; font-size: 1.25rem; padding: .7rem .9rem;
+  border: 2px solid var(--ink); border-radius: 8px; background: var(--surface); color: var(--ink);
+}
+#q::placeholder { color: var(--muted); }
+#clear {
+  font: inherit; font-weight: 700; padding: 0 1rem; border-radius: 8px; cursor: pointer;
+  border: 2px solid var(--line); background: var(--surface); color: var(--ink);
+}
+#clear:hover { border-color: var(--ink); }
+.chip {
+  font: inherit; font-size: .9rem; padding: .2rem .7rem; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+a.chip { display: inline-block; text-decoration: none; }
+.item-name a { color: inherit; text-decoration: none; }
+.item-name a:hover { color: var(--sign-text); text-decoration: underline; }
+.all-link { margin: .3rem 0 0; font-size: .9rem; }
+.chip:hover { border-color: var(--sign-text); color: var(--sign-text); }
+
+/* 結果 */
+#results { display: grid; gap: 1rem; padding: 1rem 0 2rem; }
+.status { margin: 0; color: var(--muted); font-size: .95rem; }
+.status strong { color: var(--ink); }
+
+.sign-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.sign-card.main { border: 2px solid var(--sign); box-shadow: 0 6px 18px rgb(0 0 0 / .08); }
+.sign-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem 1rem; padding: .9rem 1.2rem .2rem; }
+.item-name { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; margin: 0; }
+.matched { font-size: .85rem; color: var(--muted); }
+
+.places { display: grid; gap: .7rem; padding: .7rem 1.2rem 1.2rem; }
+.place { display: grid; grid-template-columns: 6.6rem 1fr; gap: .2rem 1rem; align-items: start; }
+.rank {
+  font-size: .78rem; font-weight: 700; padding: .15rem .55rem; border-radius: 4px; white-space: nowrap;
+  border: 1px solid var(--line); color: var(--muted); margin-top: .55rem; justify-self: start;
+}
+.place.first .rank { background: var(--tag); color: var(--tag-ink); border-color: var(--tag); }
+.path { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .8rem; }
+.dept {
+  display: inline-block; font-family: var(--font-display); font-weight: 900;
+  background: var(--sign); color: var(--sign-ink); padding: .25rem .8rem; border-radius: 4px;
+  font-size: 1.15rem; letter-spacing: .04em;
+}
+.place.first .dept { font-size: 1.5rem; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem .4rem; font-size: 1rem; }
+.crumbs::before { content: "›"; color: var(--muted); }
+.crumbs .sep { color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: .35rem; text-decoration: none; font-weight: 700; font-size: .9rem;
+  padding: .35rem .8rem; border-radius: 6px; border: 2px solid var(--sign-text); color: var(--sign-text); background: transparent;
+}
+.btn:hover { background: var(--sign); border-color: var(--sign); color: var(--sign-ink); }
+
+.others { display: grid; gap: .6rem; }
+.others h2, section h2 { font-family: var(--font-display); font-size: 1.1rem; margin: .4rem 0 0; }
+
+.empty { background: var(--surface); border: 1px dashed var(--muted); border-radius: 10px; padding: 1.1rem 1.2rem; display: grid; gap: .6rem; }
+.empty p { margin: 0; }
+
+/* 確かめ方 */
+.howto { background: var(--surface); border-left: 6px solid var(--tag); border-radius: 0 10px 10px 0; padding: 1rem 1.2rem; }
+.howto h2 { margin-top: 0; }
+.howto ol { margin: .3rem 0 0; padding-left: 1.4rem; display: grid; gap: .2rem; }
+
+/* 一覧 */
+.dept-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .8rem; margin-top: .8rem; }
+.dept-box { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; display: grid; gap: .45rem; align-content: start; }
+.dept-box h3 { margin: 0; font-family: var(--font-display); font-size: 1.05rem; display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; }
+.dept-box h3 a { font-family: var(--font-body); font-size: .8rem; font-weight: 400; white-space: nowrap; }
+.dept-box .chips { display: flex; flex-wrap: wrap; gap: .3rem; }
+.dept-box .chip { font-size: .82rem; padding: .1rem .55rem; }
+
+section { padding: 1rem 0; }
+
+/* 商品ページ */
+.bc { font-size: .85rem; color: var(--muted); padding-top: .4rem; display: flex; flex-wrap: wrap; gap: .2rem .45rem; }
+.bc a { color: var(--muted); }
+.page-h1 { font-size: 1.8rem; }
+.answer { margin: .6rem 0 0; font-size: 1.05rem; }
+.aliases { margin: .3rem 0 0; color: var(--muted); font-size: .9rem; }
+.item-body { display: grid; gap: 1rem; padding: 1rem 0 1rem; }
+.related .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+.goto { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.goto input { flex: 1; min-width: 12rem; font: inherit; padding: .5rem .7rem; border: 2px solid var(--ink); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.goto button { font: inherit; font-weight: 700; padding: .5rem 1rem; border-radius: 8px; cursor: pointer; border: 2px solid var(--sign); background: var(--sign); color: var(--sign-ink); }
+.all-items { display: grid; gap: 1rem; }
+.all-items .dept-box h3 a { font-size: .8rem; }
+footer { border-top: 1px solid var(--line); margin-top: 1.5rem; padding: 1.2rem 0 2.5rem; color: var(--muted); font-size: .85rem; }
+footer p { margin: .2rem 0; }
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.6rem; }
+  .place { grid-template-columns: 1fr; }
+  .rank { justify-self: start; margin-top: 0; }
+  #q { font-size: 1.1rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sign-card { animation: drop .25s ease-out both; }
+  @keyframes drop { from { transform: translateY(-4px); } to { transform: none; } }
+}
+</style>
+<!-- 閲覧数の計測（GoatCounter）。検索語が送られないよう、URL の ?q=… は送らない（path は場所だけにし、count.js が別に付ける q も取り除く） -->
+<script>
+window.goatcounter = { no_onload: true, path: () => location.pathname };
+function gcCount() {
+  const gc = window.goatcounter, get = gc.get_data;
+  gc.get_data = v => { const d = get(v); delete d.q; return d; };
+  gc.count();
+}
+</script>
+<script data-goatcounter="https://category-finder.goatcounter.com/count" async src="https://gc.zgo.at/count.js" onload="gcCount()"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="prefs">
+    <div class="pref">
+      <button type="button" class="theme-btn" id="theme-btn">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+    <div class="pref" role="radiogroup" aria-label="文字サイズ">
+      <div class="size-seg">
+        <input type="radio" name="size" id="size-s" value="s"><label for="size-s" title="小" aria-label="小">A</label>
+        <input type="radio" name="size" id="size-m" value="m"><label for="size-m" title="中" aria-label="中">A</label>
+        <input type="radio" name="size" id="size-l" value="l"><label for="size-l" title="大" aria-label="大">A</label>
+      </div>
+    </div>
+    <div class="pref" role="radiogroup" aria-label="色">
+      <div class="swatches">
+        <input type="radio" name="color" id="color-green" value="green"><label for="color-green" title="深緑" aria-label="深緑"><span class="sw" aria-hidden="true"></span></label>
+        <input type="radio" name="color" id="color-indigo" value="indigo"><label for="color-indigo" title="藍" aria-label="藍"><span class="sw" aria-hidden="true"></span></label>
+        <input type="radio" name="color" id="color-enji" value="enji"><label for="color-enji" title="えんじ" aria-label="えんじ"><span class="sw" aria-hidden="true"></span></label>
+        <input type="radio" name="color" id="color-sumi" value="sumi"><label for="color-sumi" title="墨" aria-label="墨"><span class="sw" aria-hidden="true"></span></label>
+      </div>
+    </div>
+  </div>
+    <nav class="bc" aria-label="現在の場所"><a href="../../">Amazonカテゴリ逆引き</a><span aria-hidden="true">›</span><a href="../">商品一覧</a><span aria-hidden="true">›</span><span>アクセサリー</span></nav>
+  <header>
+    <h1 class="page-h1">「アクセサリー」は Amazon のどのカテゴリ？</h1>
+    <p class="answer">アクセサリーは Amazon.co.jp では主に<strong>「ファッション › ジュエリー」</strong>に並んでいます。</p>
+    <p class="aliases">別の呼び方: ネックレス、ピアス、イヤリング、指輪、ブレスレット、ジュエリー</p>
+    <p class="caveat">※ 表示する売り場や分類は Amazon の画面で一つずつ確かめたものではありません。参考程度にご覧ください。</p>
+  </header>
+  <div class="item-body">
+    <article class="sign-card main">
+      <div class="sign-head"><h2 class="item-name">アクセサリー</h2></div>
+      <div class="places">
+      <div class="place first">
+        <span class="rank">主な売り場</span>
+        <div class="path">
+          <span class="dept">ファッション</span>
+          <div class="crumbs" aria-label="階層"><span>ジュエリー</span></div>
+          <div class="actions"><a class="btn" href="https://www.amazon.co.jp/s?k=%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B5%E3%83%AA%E3%83%BC&amp;i=fashion" target="_blank" rel="noopener">「ファッション」で「アクセサリー」を検索</a></div>
+        </div>
+      </div>
+      </div>
+    </article>
+    <div><a class="btn" href="https://www.amazon.co.jp/s?k=%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B5%E3%83%AA%E3%83%BC" target="_blank" rel="noopener">Amazon全体で「アクセサリー」を検索</a></div>
+    <aside class="howto">
+      <h2>Amazon の画面で確かめる方法</h2>
+      <ol>
+        <li>上の「Amazon全体で検索」を押し、検索結果を開きます。</li>
+        <li>検索結果から商品を選んで商品ページを開くと、ページ上部に「家電&amp;カメラ › アクセサリ・サプライ › …」のような売り場の階層が表示されます。</li>
+      </ol>
+    </aside>
+    <section class="related"><h2>「ファッション」のほかの商品</h2><div class="chips"><a class="chip" href="../%E3%82%B9%E3%83%8B%E3%83%BC%E3%82%AB%E3%83%BC/">スニーカー</a><a class="chip" href="../%E3%83%90%E3%83%83%E3%82%B0/">バッグ</a><a class="chip" href="../%E3%82%B9%E3%83%BC%E3%83%84%E3%82%B1%E3%83%BC%E3%82%B9/">スーツケース</a><a class="chip" href="../%E8%B2%A1%E5%B8%83/">財布</a><a class="chip" href="../%E5%82%98/">傘</a><a class="chip" href="../%E6%9C%8D/">服</a><a class="chip" href="../%E3%83%A1%E3%82%AC%E3%83%8D/">メガネ</a><a class="chip" href="../%E8%85%95%E6%99%82%E8%A8%88/">腕時計</a><a class="chip" href="../%E5%B8%BD%E5%AD%90/">帽子</a><a class="chip" href="../%E3%83%99%E3%83%AB%E3%83%88/">ベルト</a><a class="chip" href="../%E3%83%9E%E3%83%95%E3%83%A9%E3%83%BC/">マフラー</a><a class="chip" href="../%E3%83%8D%E3%82%AF%E3%82%BF%E3%82%A4/">ネクタイ</a><a class="chip" href="../%E6%B5%B4%E8%A1%A3/">浴衣</a><a class="chip" href="../%E9%95%B7%E9%9D%B4/">長靴</a><a class="chip" href="../%E5%AD%90%E4%BE%9B%E6%9C%8D/">子供服</a></div></section>
+    <section>
+      <h2>ほかの商品を調べる</h2>
+      <form class="goto" action="../../" method="get" role="search">
+        <input name="q" type="search" aria-label="商品の名前" enterkeyhint="search">
+        <button type="submit">調べる</button>
+      </form>
+    </section>
+  </div>
+
+  <footer>
+    <p>このページは Amazon とは関係のない個人の非公式ツールです。カテゴリ名と階層は 2026年11月時点の Amazon.co.jp の売り場構成をもとにした目安で、Amazon 側の変更により名前や位置が変わることがあります。正確な位置は「Amazon全体で検索」から確かめてください。</p>
+    <p>閲覧数を数えるために、Cookie を使わないアクセス解析（GoatCounter）を使っています。</p>
+  </footer>
+</div>
+<script>
+// 表示の設定
+const root = document.documentElement;
+function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+const themeBtn = document.getElementById("theme-btn");
+function syncThemeBtn() {
+  const dark = root.dataset.theme === "dark", label = dark ? "ライトモードにする" : "ダークモードにする";
+  themeBtn.title = label; themeBtn.setAttribute("aria-label", label);
+}
+syncThemeBtn();
+document.getElementById("color-" + (root.dataset.color || "green")).checked = true;
+document.getElementById("size-" + (root.dataset.size || "m")).checked = true;
+document.querySelectorAll('input[name="size"]').forEach(r => r.addEventListener("change", () => {
+  if (r.value === "m") delete root.dataset.size; else root.dataset.size = r.value;
+  save("acat-size", r.value);
+}));
+themeBtn.addEventListener("click", () => {
+  const next = root.dataset.theme === "dark" ? "light" : "dark";
+  if (next === "dark") root.dataset.theme = "dark"; else delete root.dataset.theme;
+  save("acat-theme", next);
+  syncThemeBtn();
+});
+document.querySelectorAll('input[name="color"]').forEach(r => r.addEventListener("change", () => {
+  if (r.value === "green") delete root.dataset.color; else root.dataset.color = r.value;
+  save("acat-color", r.value);
+}));
+</script>
+</body>
+</html>

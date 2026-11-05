@@ -3,7 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Amazonカテゴリ逆引き</title>
+<title>Amazonカテゴリ逆引き｜商品がどの売り場にあるか調べる</title>
+<meta name="description" content="商品名を入れると、Amazon.co.jp のどの売り場（カテゴリ）に並んでいるかを表示する非公式ツール。家電・日用品・食品・ペット用品など約300商品に対応し、売り場を絞った Amazon 検索もすぐ開けます。">
+<link rel="canonical" href="https://kt004.github.io/category-finder/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Amazonカテゴリ逆引き">
+<meta property="og:title" content="Amazonカテゴリ逆引き｜商品がどの売り場にあるか調べる">
+<meta property="og:description" content="商品名を入れると、Amazon.co.jp のどの売り場（カテゴリ）に並んでいるかを表示する非公式ツール。家電・日用品・食品・ペット用品など約300商品に対応し、売り場を絞った Amazon 検索もすぐ開けます。">
+<meta property="og:url" content="https://kt004.github.io/category-finder/">
+<meta property="og:image" content="https://kt004.github.io/category-finder/og.png">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<!-- shared-head:start（商品ページにも同じものを使う。tools/build_pages.py が読み取る） -->
 <script>
 // 保存した表示設定を、描画前に反映する（ちらつき防止）
 try {
@@ -134,6 +145,10 @@ h1 {
   font: inherit; font-size: .9rem; padding: .2rem .7rem; border-radius: 999px; cursor: pointer;
   border: 1px solid var(--line); background: var(--surface); color: var(--ink);
 }
+a.chip { display: inline-block; text-decoration: none; }
+.item-name a { color: inherit; text-decoration: none; }
+.item-name a:hover { color: var(--sign-text); text-decoration: underline; }
+.all-link { margin: .3rem 0 0; font-size: .9rem; }
 .chip:hover { border-color: var(--sign-text); color: var(--sign-text); }
 
 /* 結果 */
@@ -191,6 +206,20 @@ h1 {
 .dept-box .chip { font-size: .82rem; padding: .1rem .55rem; }
 
 section { padding: 1rem 0; }
+
+/* 商品ページ */
+.bc { font-size: .85rem; color: var(--muted); padding-top: .4rem; display: flex; flex-wrap: wrap; gap: .2rem .45rem; }
+.bc a { color: var(--muted); }
+.page-h1 { font-size: 1.8rem; }
+.answer { margin: .6rem 0 0; font-size: 1.05rem; }
+.aliases { margin: .3rem 0 0; color: var(--muted); font-size: .9rem; }
+.item-body { display: grid; gap: 1rem; padding: 1rem 0 1rem; }
+.related .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+.goto { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.goto input { flex: 1; min-width: 12rem; font: inherit; padding: .5rem .7rem; border: 2px solid var(--ink); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.goto button { font: inherit; font-weight: 700; padding: .5rem 1rem; border-radius: 8px; cursor: pointer; border: 2px solid var(--sign); background: var(--sign); color: var(--sign-ink); }
+.all-items { display: grid; gap: 1rem; }
+.all-items .dept-box h3 a { font-size: .8rem; }
 footer { border-top: 1px solid var(--line); margin-top: 1.5rem; padding: 1.2rem 0 2.5rem; color: var(--muted); font-size: .85rem; }
 footer p { margin: .2rem 0; }
 
@@ -205,6 +234,8 @@ footer p { margin: .2rem 0; }
   @keyframes drop { from { transform: translateY(-4px); } to { transform: none; } }
 }
 </style>
+<!-- shared-head:end -->
+<!-- gc:start -->
 <!-- 閲覧数の計測（GoatCounter）。検索語が送られないよう、URL の ?q=… は送らない（path は場所だけにし、count.js が別に付ける q も取り除く） -->
 <script>
 window.goatcounter = { no_onload: true, path: () => location.pathname };
@@ -215,9 +246,11 @@ function gcCount() {
 }
 </script>
 <script data-goatcounter="https://category-finder.goatcounter.com/count" async src="https://gc.zgo.at/count.js" onload="gcCount()"></script>
+<!-- gc:end -->
 </head>
 <body>
 <div class="wrap">
+  <!-- prefs:start -->
   <div class="prefs">
     <div class="pref">
       <button type="button" class="theme-btn" id="theme-btn">
@@ -241,6 +274,7 @@ function gcCount() {
       </div>
     </div>
   </div>
+  <!-- prefs:end -->
   <header>
     <div class="brand">
       <h1>Amazonカテゴリ逆引き</h1>
@@ -270,6 +304,7 @@ function gcCount() {
 
   <section aria-labelledby="list-h">
     <h2 id="list-h">売り場（大カテゴリ）一覧</h2>
+    <p class="all-link"><a href="item/">すべての商品の一覧</a></p>
     <div class="dept-list" id="dept-list"></div>
   </section>
 
@@ -302,6 +337,11 @@ const DEPTS = {
   mi:  ["楽器・音響機器", "mi"],
   ind: ["産業・研究開発用品", "industrial"],
   bk:  ["本", "stripbooks"],
+  kd:  ["Kindleストア", "digital-text"],
+  sw:  ["PCソフト", "software"],
+  dvd: ["DVD・ブルーレイ", "dvd"],
+  mu:  ["ミュージック", "popular"],
+  gc:  ["ギフトカード", "gift-cards"],
 };
 
 // 商品名|別名(カンマ区切り)|売り場:階層>階層;売り場:階層  （最初の売り場がいちばん多く並ぶ場所）
@@ -391,7 +431,7 @@ PCスタンド|ノートパソコンスタンド,モニターアーム,タブレ
 スチールラック|本棚,棚,ラック,メタルラック,シェルフ|hk:家具>棚・ラック
 デスク|机,パソコンデスク,学習机,昇降デスク|hk:家具>デスク;of:オフィス家具
 オフィスチェア|椅子,イス,ゲーミングチェア,デスクチェア,チェア|hk:家具>チェア;of:オフィス家具>オフィスチェア
-ソファ|ソファー,座椅子,クッション|hk:家具>ソファ
+ソファ|ソファー,座椅子|hk:家具>ソファ
 ベッド|ベッドフレーム,マットレス,すのこ|hk:家具>ベッド;hk:寝具>マットレス
 寝具|枕,まくら,布団,掛け布団,毛布,シーツ|hk:寝具
 カーテン|ブラインド,カーテンレール,遮光カーテン|hk:インテリア>カーテン・ブラインド
@@ -456,7 +496,7 @@ PCスタンド|ノートパソコンスタンド,モニターアーム,タブレ
 ベビーカー|チャイルドシート,抱っこ紐,抱っこひも|bb:ベビーカー・チャイルドシート・抱っこ紐
 ドッグフード|キャットフード,ペットフード,おやつ 犬,おやつ 猫|pet:犬用品>フード;pet:猫用品>フード
 猫砂|ペットシーツ,トイレシート,猫トイレ|pet:猫用品>トイレ用品;pet:犬用品>トイレ用品
-ペットキャリー|ケージ,ペットサークル,首輪,リード|pet:犬用品;pet:猫用品
+ペットキャリー|ケージ,ペットサークル|pet:犬用品;pet:猫用品
 水槽|アクアリウム,熱帯魚,金魚 水槽|pet:熱帯魚・アクアリウム
 ぬいぐるみ|人形,ぬいぐるみ 大きい|toy:ぬいぐるみ・人形
 ブロック|レゴ,LEGO,知育玩具,積み木|toy:ブロック・知育玩具
@@ -475,6 +515,139 @@ PCスタンド|ノートパソコンスタンド,モニターアーム,タブレ
 調味料|醤油,しょうゆ,味噌,みそ,だし,オリーブオイル|fd:調味料
 インスタント食品|カップ麺,カップラーメン,レトルト,レトルトカレー,パスタ|fd:インスタント食品
 本|小説,漫画,マンガ,コミック,参考書,雑誌,絵本|bk
+スマートフォン|スマホ,iPhone,Androidスマホ,携帯電話|el:携帯電話・スマートフォン>スマートフォン本体
+スマホスタンド|携帯スタンド,スマホホルダー|el:携帯電話・スマートフォン>スタンド・ホルダー
+ワイヤレス充電器|Qi充電器,置くだけ充電器,MagSafe充電器|el:携帯電話・スマートフォン>充電器・アダプター
+プロジェクター|ホームプロジェクター,モバイルプロジェクター|el:テレビ・レコーダー>プロジェクター
+ブルーレイレコーダー|レコーダー,BDレコーダー,DVDレコーダー|el:テレビ・レコーダー>ブルーレイ・DVDレコーダー
+テレビアンテナ|アンテナ,アンテナケーブル|el:テレビ・レコーダー>テレビアクセサリ
+交換レンズ|カメラレンズ,レンズ|el:カメラ>交換レンズ
+ドローン|空撮ドローン|el:カメラ>ドローン;toy:ラジコン・ドローン
+ラジオ|防災ラジオ,ポータブルラジオ|el:オーディオ>ラジオ
+ICレコーダー|ボイスレコーダー,録音機|el:オーディオ>ICレコーダー
+レコードプレーヤー|ターンテーブル,CDプレーヤー|el:オーディオ>プレーヤー
+アイロン|スチームアイロン,衣類スチーマー|el:生活家電>アイロン・衣類スチーマー
+布団乾燥機|ふとん乾燥機|el:生活家電>布団乾燥機
+ミシン|電動ミシン,コンピューターミシン|el:生活家電>ミシン
+ミキサー|ブレンダー,ジューサー,フードプロセッサー,ハンドブレンダー|el:キッチン家電>ミキサー・ブレンダー
+電気圧力鍋|電気調理鍋,自動調理鍋|el:キッチン家電>電気圧力鍋
+ノンフライヤー|エアフライヤー|el:キッチン家電>ノンフライヤー
+IHクッキングヒーター|IHコンロ,卓上IH|el:キッチン家電>IHクッキングヒーター
+電子辞書|翻訳機|el:電子辞書・翻訳機
+グラフィックボード|グラボ,GPU,ビデオカード|pc:PCパーツ>グラフィックボード
+CPU|プロセッサー,プロセッサ|pc:PCパーツ>CPU
+PCメモリ|メモリ,増設メモリ,DDR4,DDR5|pc:PCパーツ>メモリ
+マザーボード|マザボ|pc:PCパーツ>マザーボード
+PCケース|自作PCケース,電源ユニット|pc:PCパーツ>PCケース
+NAS|ネットワークHDD|pc:外付けドライブ・ストレージ>NAS;pc:ネットワーク機器
+ペンタブレット|ペンタブ,液タブ,板タブ,液晶タブレット|pc:キーボード・マウス・入力機器>ペンタブレット
+スキャナー|ドキュメントスキャナー|pc:プリンター・スキャナー>スキャナー
+PCバッグ|ノートパソコンケース,パソコンバッグ|pc:PCアクセサリ・サプライ>PCバッグ・ケース
+ヘッドセット|ゲーミングヘッドセット,PCヘッドセット|pc:PCアクセサリ・サプライ>ヘッドセット;gm:周辺機器・アクセサリ
+光学ドライブ|DVDドライブ,ブルーレイドライブ|pc:外付けドライブ・ストレージ>光学ドライブ
+Office|オフィスソフト,ワード,エクセル,Microsoft Office|sw
+セキュリティソフト|ウイルス対策ソフト,ウイルスバスター,ノートン|sw
+年賀状ソフト|はがき作成ソフト|sw
+キッチンスケール|はかり,計量カップ,スケール|hk:キッチン用品・食器>計量器具
+水切りラック|水切りかご,キッチン収納|hk:キッチン用品・食器>キッチン収納
+突っ張り棒|つっぱり棒|hk:収納用品>突っ張り棒
+物干し|物干し竿,ピンチハンガー,洗濯ばさみ,室内物干し|hk:洗濯用品>物干し
+洗濯かご|ランドリーバスケット,洗濯ネット|hk:洗濯用品>ランドリーバスケット
+クッション|座布団,ビーズクッション|hk:インテリア>クッション・座布団
+鏡|ミラー,姿見,卓上ミラー|hk:インテリア>ミラー
+お風呂用品|風呂椅子,洗面器,バスマット,お風呂グッズ|hk:バス・洗面用品
+トイレ用品|便座カバー,トイレマット,トイレブラシ|hk:バス・洗面用品>トイレ用品
+観葉植物|フェイクグリーン,造花|diy:ガーデニング>観葉植物;hk:インテリア>フェイクグリーン
+コンタクトレンズ|コンタクト,コンタクト洗浄液,カラコン|dr:コンタクトレンズ・ケア用品
+生理用品|ナプキン,タンポン,おりものシート|dr:衛生用品>生理用品
+綿棒|コットン,あぶらとり紙|dr:衛生用品
+除菌スプレー|アルコール除菌,除菌シート,消毒液,手指消毒|dr:衛生用品>除菌・消毒
+介護用品|大人用おむつ,尿取りパッド,杖,車椅子|dr:介護用品
+カイロ|使い捨てカイロ,貼るカイロ|dr:日用消耗品>カイロ
+洗顔料|洗顔フォーム,クレンジング,メイク落とし|bt:スキンケア>洗顔・クレンジング
+ハンドクリーム|ボディクリーム,ボディローション|bt:ボディケア
+リップクリーム|リップバーム|bt:スキンケア>リップケア
+マニキュア|ネイル,ジェルネイル,ネイルシール,爪切り|bt:ネイル
+ヘアワックス|スタイリング剤,ヘアスプレー,ヘアジェル|bt:ヘアケア>スタイリング剤
+白髪染め|ヘアカラー,カラー剤|bt:ヘアケア>ヘアカラー
+メイク道具|メイクブラシ,パフ,ビューラー|bt:メイクアップ>メイク道具
+メンズスキンケア|オールインワン,メンズ化粧水|bt:スキンケア
+ジュース|清涼飲料水,コーラ,スポーツドリンク,エナジードリンク|fd:水・ソフトドリンク
+ナッツ|ミックスナッツ,アーモンド,ドライフルーツ|fd:スナック・お菓子>ナッツ・ドライフルーツ
+缶詰|ツナ缶,サバ缶|fd:缶詰・瓶詰
+冷凍食品|冷凍餃子,冷凍パスタ|fd:冷凍食品
+果物|フルーツ,りんご,みかん|fd:野菜・果物
+野菜|野菜セット|fd:野菜・果物
+肉|牛肉,豚肉,鶏肉,ハム,ソーセージ|fd:肉・肉加工品
+魚介類|魚,海鮮,カニ,エビ,うなぎ|fd:魚介類・シーフード
+はちみつ|蜂蜜,ジャム,ピーナッツバター|fd:ジャム・はちみつ・スプレッド
+シリアル|グラノーラ,オートミール,コーンフレーク|fd:シリアル
+麺類|そば,うどん,そうめん,ラーメン|fd:麺類
+栄養補助食品|プロテインバー,ゼリー飲料|fd:スナック・お菓子;dr:サプリメント
+帽子|キャップ,ハット,ニット帽|fa:ファッション小物>帽子
+ベルト|レザーベルト|fa:ファッション小物>ベルト
+マフラー|ストール,手袋,ネックウォーマー|fa:ファッション小物>マフラー・手袋
+アクセサリー|ネックレス,ピアス,イヤリング,指輪,ブレスレット,ジュエリー|fa:ジュエリー
+ネクタイ|ネクタイピン|fa:ファッション小物>ネクタイ
+浴衣|着物,甚平|fa:メンズ・レディース>着物・浴衣
+長靴|レインブーツ,レインシューズ|fa:シューズ>レインシューズ
+子供服|キッズ服,ベビー服|fa:キッズ・ベビー
+バーベキューコンロ|BBQコンロ,焚き火台,バーベキューグリル,炭|sp:アウトドア>バーベキュー・焚き火
+登山用品|トレッキングポール,登山靴,ザック|sp:アウトドア>登山・トレッキング
+スポーツウェア|ジャージ,トレーニングウェア,ランニングウェア|sp:スポーツウェア
+サッカー用品|サッカーボール,スパイク,フットサル|sp:サッカー・フットサル
+野球用品|グローブ,バット,野球ボール|sp:野球
+テニス用品|テニスラケット,テニスボール|sp:テニス
+バドミントン用品|バドミントンラケット,シャトル|sp:バドミントン
+スキー・スノーボード|スノボ,スキー,スノーボード,スキーウェア|sp:スキー・スノーボード
+フィットネスマシン|エアロバイク,ルームランナー,ランニングマシン,フィットネスバイク|sp:トレーニング・フィットネス>フィットネスマシン
+カーバッテリー|車のバッテリー,バッテリー 車|car:パーツ>バッテリー
+エンジンオイル|オイル交換,添加剤|car:オイル・添加剤
+ワイパー|ワイパーブレード|car:パーツ>ワイパー
+車載充電器|シガーソケット,カーチャージャー|car:カーエレクトロニクス>車載用充電器
+ジャンプスターター|バッテリー上がり|car:洗車・メンテナンス用品>緊急用品
+ベビーベッド|ベビー布団|bb:ベビー家具・寝具
+マタニティ用品|妊婦,マタニティウェア,葉酸|bb:マタニティ
+ベビーバス|沐浴,ベビーソープ|bb:お風呂・バス用品
+ベビーゲート|ベビーサークル,ベビーガード|bb:安全グッズ
+首輪・リード|首輪,リード,ハーネス|pet:犬用品>首輪・リード
+爪とぎ|キャットタワー,猫じゃらし,猫のおもちゃ|pet:猫用品>おもちゃ・爪とぎ
+ペットベッド|ペットマット|pet:犬用品>ベッド・マット;pet:猫用品>ベッド・マット
+小動物用品|ハムスター,うさぎ,インコ,鳥かご|pet:小動物用品;pet:鳥用品
+ペットのおやつ|ちゅーる,ジャーキー,犬のおやつ,猫のおやつ|pet:犬用品>おやつ;pet:猫用品>おやつ
+ペット用ブラシ|トリミング,ペットシャンプー|pet:犬用品>お手入れ用品;pet:猫用品>お手入れ用品
+印鑑|ハンコ,シャチハタ,スタンプ,朱肉|of:事務用品>印鑑・スタンプ
+ホワイトボード|コルクボード,マグネット|of:事務用品>ホワイトボード
+封筒|便箋,レターセット,はがき|of:ノート・紙製品>封筒・便箋
+梱包材|段ボール,ダンボール,緩衝材,プチプチ,クッション封筒|of:梱包・発送用品
+カレンダー|卓上カレンダー,壁掛けカレンダー|of:手帳・カレンダー
+画材|絵の具,色鉛筆,スケッチブック,クレヨン,水彩|of:画材
+ペンケース|筆箱|of:筆記具>ペンケース
+ラジコン|RCカー|toy:ラジコン・ドローン
+ミニカー|トミカ|toy:ミニカー・乗り物
+おままごと|ままごとセット|toy:ごっこ遊び
+乗用玩具|三輪車,キックボード,ストライダー|toy:乗用玩具
+トレーディングカード|トレカ,カードスリーブ,ポケカ|hb:トレーディングカード
+手芸用品|毛糸,刺繍,ハンドメイド,裁縫道具,生地|hb:手芸・クラフト
+ドラム|電子ドラム,カホン,ドラムスティック|mi:ドラム・パーカッション
+楽器アクセサリー|譜面台,チューナー,メトロノーム,カポ|mi:楽器アクセサリ
+管楽器|サックス,トランペット,フルート,ハーモニカ|mi:管楽器
+草刈り機|芝刈り機,刈払機|diy:ガーデニング>芝刈り機・草刈り機
+高圧洗浄機|ケルヒャー|diy:電動工具>高圧洗浄機;car:洗車・メンテナンス用品
+南京錠|鍵,補助錠,ダイヤルロック|diy:防犯・防災>鍵・ロック
+ネジ|ボルト,ナット,ビス,釘|diy:金物・部品>ネジ・ボルト
+水栓|蛇口,シャワーヘッド,水栓パッキン|diy:住宅設備>水栓・シャワー
+センサーライト|人感センサーライト,ソーラーライト,ガーデンライト|diy:照明>屋外照明
+除草剤|雑草対策,防草シート|diy:ガーデニング>除草剤・防草シート
+網戸|網戸 張替え,隙間テープ|diy:住宅設備>網戸
+電動のこぎり|丸ノコ,ジグソー,グラインダー|diy:電動工具
+安全靴|作業靴|ind:安全・保護用品;fa:シューズ>安全靴
+実験器具|ビーカー,試験管,顕微鏡|ind:研究・実験用品
+台車|キャリーカート,運搬台車|ind:物流・保管用品>台車
+電子書籍|Kindle本,Kindle,キンドル|kd
+DVD|ブルーレイ,Blu-ray,映画,アニメDVD|dvd
+CD|音楽CD,アルバム,レコード|mu
+ギフトカード|Amazonギフトカード,ギフト券,アマギフ|gc
 `;
 
 const ITEMS = DATA.trim().split("\n").map(line => {
@@ -534,6 +707,9 @@ function search(raw) {
 }
 
 const amazon = (k, alias) => "https://www.amazon.co.jp/s?k=" + encodeURIComponent(k) + (alias ? "&i=" + alias : "");
+// 商品ページの場所（tools/build_pages.py の slug() と同じ規則）
+const slug = name => name.replace(/（/g, "-").replace(/）/g, "");
+const itemURL = name => "item/" + encodeURIComponent(slug(name)) + "/";
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 function placeHTML(p, i, keyword, main) {
@@ -555,7 +731,7 @@ function cardHTML(r, keyword, main) {
   const showVia = norm(r.via) !== norm(r.it.name.replace(/（.*?）/g, ""));
   return `<article class="sign-card${main ? " main" : ""}">
     <div class="sign-head">
-      <h3 class="item-name">${esc(r.it.name)}</h3>
+      <h3 class="item-name"><a href="${itemURL(r.it.name)}">${esc(r.it.name)}</a></h3>
       ${showVia ? `<span class="matched">「${esc(r.via)}」として見つかりました</span>` : ""}
     </div>
     <div class="places">${r.it.paths.map((p, i) => placeHTML(p, i, keyword, main)).join("")}</div>
@@ -630,14 +806,16 @@ for (const [key, [dname, alias]] of Object.entries(DEPTS)) {
   box.innerHTML = `<h3><span>${esc(dname)}</span><a href="https://www.amazon.co.jp/s?i=${alias}&k=" target="_blank" rel="noopener">Amazonで開く</a></h3><div class="chips"></div>`;
   const chips = box.querySelector(".chips");
   items.forEach(it => {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "chip"; b.textContent = it.name;
-    b.addEventListener("click", () => { setQuery(it.name.replace(/（.*?）/g, "")); window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
+    // 検索サイトがたどれるよう商品ページへのリンクにし、押したときはこのページの中で結果を出す
+    const b = document.createElement("a");
+    b.href = itemURL(it.name); b.className = "chip"; b.textContent = it.name;
+    b.addEventListener("click", e => { if (e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); setQuery(it.name.replace(/（.*?）/g, "")); window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
     chips.appendChild(b);
   });
   list.appendChild(box);
 }
 
+// prefs-js:start
 // 表示の設定
 const root = document.documentElement;
 function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
@@ -663,6 +841,7 @@ document.querySelectorAll('input[name="color"]').forEach(r => r.addEventListener
   if (r.value === "green") delete root.dataset.color; else root.dataset.color = r.value;
   save("acat-color", r.value);
 }));
+// prefs-js:end
 
 $q.value = new URL(location.href).searchParams.get("q") ?? "";
 render();

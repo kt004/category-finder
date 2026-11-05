@@ -275,7 +275,7 @@ function gcCount() {
 
   <footer>
     <p>このページは Amazon とは関係のない個人の非公式ツールです。カテゴリ名と階層は 2026年11月時点の Amazon.co.jp の売り場構成をもとにした目安で、Amazon 側の変更により名前や位置が変わることがあります。正確な位置は「Amazon全体で検索」から確かめてください。</p>
-    <p>入力した言葉はこのページの中だけで使い、どこにも送信しません（Amazon のボタンを押したときだけ、その言葉で Amazon の検索ページを開きます）。閲覧数を数えるために、Cookie を使わないアクセス解析（GoatCounter）を使っています。</p>
+    <p>入力した言葉はこのページの中だけで使い、どこにも送信しません（Amazon のボタンを押したときだけ、その言葉で Amazon の検索ページを開きます）。閲覧数と、よく探される商品を把握するために、Cookie を使わないアクセス解析（GoatCounter）を使っています。記録するのはこのページの辞書にある商品名（見つからなかった場合は「辞書になし」）だけで、入力した文字そのものは送りません。</p>
   </footer>
 </div>
 
@@ -565,6 +565,20 @@ function cardHTML(r, keyword, main) {
 const $q = document.getElementById("q");
 const $res = document.getElementById("results");
 
+// よく探される商品の記録（GoatCounter のイベント）: 入力した文字は送らず、辞書の商品名か「辞書になし」だけを送る。
+// 打ち込み途中の結果を送らないよう、入力が 1.5 秒止まってから送り、同じ内容は続けて送らない。
+let trackTimer = 0, lastTracked = "";
+function trackSearch(label) {
+  clearTimeout(trackTimer);
+  if (!label) { lastTracked = ""; return; }
+  trackTimer = setTimeout(() => {
+    const gc = window.goatcounter;
+    if (label === lastTracked || !gc || typeof gc.count !== "function") return;
+    lastTracked = label;
+    gc.count({ event: true, path: "検索: " + label, title: label });
+  }, 1500);
+}
+
 function render() {
   const raw = $q.value.trim();
   const url = new URL(location.href);
@@ -573,11 +587,13 @@ function render() {
 
   document.getElementById("howto").hidden = !raw; // 「Amazon全体で検索」ボタンがあるときだけ手順を出す
   if (!raw) {
+    trackSearch("");
     $res.innerHTML = `<p class="status">上の欄に商品の名前を入れてください。下の一覧から選ぶこともできます。</p>`;
     return;
   }
   const hits = search(raw);
   const allLink = `<a class="btn" href="${amazon(raw)}" target="_blank" rel="noopener">Amazon全体で「${esc(raw)}」を検索</a>`;
+  trackSearch(hits.length ? hits[0].it.name : "（辞書になし）");
   if (!hits.length) {
     $res.innerHTML = `<div class="empty">
       <p><strong>「${esc(raw)}」はこのページの辞書に見つかりませんでした。</strong></p>

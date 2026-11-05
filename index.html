@@ -205,6 +205,9 @@ footer p { margin: .2rem 0; }
   @keyframes drop { from { transform: translateY(-4px); } to { transform: none; } }
 }
 </style>
+<!-- 閲覧数の計測（GoatCounter）。検索語が送られないよう、URL の ?q=… は外してページの場所だけ送る -->
+<script>window.goatcounter = { path: () => location.pathname };</script>
+<script data-goatcounter="https://category-finder.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -265,7 +268,7 @@ footer p { margin: .2rem 0; }
 
   <footer>
     <p>このページは Amazon とは関係のない個人の非公式ツールです。カテゴリ名と階層は 2026年11月時点の Amazon.co.jp の売り場構成をもとにした目安で、Amazon 側の変更により名前や位置が変わることがあります。正確な位置は「Amazon全体で検索」から確かめてください。</p>
-    <p>入力した言葉はこのページの中だけで使い、どこにも送信しません（Amazon のボタンを押したときだけ、その言葉で Amazon の検索ページを開きます）。</p>
+    <p>入力した言葉はこのページの中だけで使い、どこにも送信しません（Amazon のボタンを押したときだけ、その言葉で Amazon の検索ページを開きます）。閲覧数を数えるために、Cookie を使わないアクセス解析（GoatCounter）を使っています。</p>
   </footer>
 </div>
 

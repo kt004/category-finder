@@ -638,7 +638,7 @@ document.querySelectorAll('input[name="color"]').forEach(r => r.addEventListener
   save("acat-color", r.value);
 }));
 
-$q.value = new URL(location.href).searchParams.get("q") ?? "電源タップ";
+$q.value = new URL(location.href).searchParams.get("q") ?? "";
 render();
 </script>
 </body>
